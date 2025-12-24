@@ -28,8 +28,23 @@ export async function scrapeGoogleMapsList(
 
   try {
     onProgress({ current: 0, total: maxItems, message: '🚀 Launching browser...' });
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({ 
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ]
+    });
     page = await browser.newPage();
+    
+    // Set longer timeouts for deployed environments
+    page.setDefaultTimeout(30000);
+    page.setDefaultNavigationTimeout(30000);
 
     onProgress({ current: 0, total: maxItems, message: '🌍 Navigating to Google Maps list...' });
     await page.goto(listUrl, { waitUntil: 'domcontentloaded' });
@@ -194,11 +209,14 @@ export async function scrapeGoogleMapsList(
     async function countAllItems(): Promise<number> {
       if (!page) return 0;
       try {
+        // Wait a bit more for list to fully load
+        await page.waitForTimeout(1500);
+        
         // Scroll to bottom to load all items
         let previousCount = 0;
         let stableCount = 0;
         let scrollAttempts = 0;
-        const maxScrollAttempts = 20; // Prevent infinite scrolling
+        const maxScrollAttempts = 30; // Increased for better detection
         
         while (scrollAttempts < maxScrollAttempts) {
           const count = await page.evaluate(() => {
@@ -230,9 +248,18 @@ export async function scrapeGoogleMapsList(
             return placeItems.length;
           });
 
-          if (count === previousCount) {
+          // Log for debugging
+          if (scrollAttempts === 0) {
+            onProgress({ 
+              current: 0, 
+              total: maxItems, 
+              message: `🔍 Initial count: ${count} items found...` 
+            });
+          }
+
+          if (count === previousCount && count > 0) {
             stableCount++;
-            if (stableCount >= 2) break; // Count stayed same for 2 scrolls, we're done
+            if (stableCount >= 3) break; // Count stayed same for 3 scrolls, we're done
           } else {
             stableCount = 0;
           }
@@ -240,18 +267,35 @@ export async function scrapeGoogleMapsList(
           previousCount = count;
           scrollAttempts++;
 
-          // Scroll down
+          // Scroll down more aggressively
           await page.evaluate(() => {
             const sidebar = document.querySelector('[role="main"]');
             if (!sidebar) return;
             const scrollElement = sidebar.querySelector('[role="feed"]') || sidebar;
+            const currentScroll = scrollElement.scrollTop;
             scrollElement.scrollTop = scrollElement.scrollHeight;
+            // If scroll didn't change, we're at bottom
+            if (scrollElement.scrollTop === currentScroll && currentScroll > 0) {
+              return; // Already at bottom
+            }
           });
-          await page.waitForTimeout(500);
+          await page.waitForTimeout(800); // Longer wait for items to load
         }
+
+        onProgress({ 
+          current: 0, 
+          total: maxItems, 
+          message: `🔍 Detection complete: Found ${previousCount} items` 
+        });
 
         return previousCount;
       } catch (e) {
+        const error = e as Error;
+        onProgress({ 
+          current: 0, 
+          total: maxItems, 
+          message: `⚠️ Error detecting items: ${error.message}. Will use max limit.` 
+        });
         return 0;
       }
     }

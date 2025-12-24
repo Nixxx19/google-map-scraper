@@ -50,8 +50,9 @@ RUN npm run build || true
 # Expose port
 EXPOSE 3000
 
-# Set environment variable
+# Set environment variables
 ENV NODE_ENV=production
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Start the server
 CMD ["npm", "run", "ui"]
