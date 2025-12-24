@@ -38,8 +38,11 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
-# Install Playwright browsers
+# Install Playwright browsers explicitly
 RUN npx playwright install chromium --with-deps
+
+# Verify browsers are installed
+RUN npx playwright --version && echo "✅ Playwright installed successfully"
 
 # Copy application files
 COPY . .
@@ -50,10 +53,15 @@ RUN npm run build || true
 # Expose port
 EXPOSE 3000
 
+# Copy startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Set environment variables
 ENV NODE_ENV=production
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PLAYWRIGHT_BROWSERS_PATH=0
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 
-# Start the server
-CMD ["npm", "run", "ui"]
+# Start the server using startup script
+CMD ["/app/start.sh"]
 

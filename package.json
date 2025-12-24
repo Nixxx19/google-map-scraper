@@ -10,7 +10,7 @@
     "scrape": "ts-node scrapper.ts",
     "server": "ts-node server.ts",
     "ui": "ts-node server.ts",
-    "postinstall": "npx playwright install chromium --with-deps || npx playwright install chromium"
+    "postinstall": "npx playwright install chromium --with-deps || npx playwright install chromium || true"
   },
   "keywords": ["google-maps", "scraper", "typescript", "playwright"],
   "author": "",

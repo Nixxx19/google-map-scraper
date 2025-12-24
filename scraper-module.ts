@@ -28,6 +28,8 @@ export async function scrapeGoogleMapsList(
 
   try {
     onProgress({ current: 0, total: maxItems, message: '🚀 Launching browser...' });
+    
+    // Launch browser with container-friendly options
     browser = await chromium.launch({ 
       headless: true,
       args: [
@@ -37,7 +39,40 @@ export async function scrapeGoogleMapsList(
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
         '--no-zygote',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--single-process',
+        '--disable-background-networking',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-breakpad',
+        '--disable-client-side-phishing-detection',
+        '--disable-component-update',
+        '--disable-default-apps',
+        '--disable-domain-reliability',
+        '--disable-extensions',
+        '--disable-features=AudioServiceOutOfProcess',
+        '--disable-hang-monitor',
+        '--disable-ipc-flooding-protection',
+        '--disable-notifications',
+        '--disable-offer-store-unmasked-wallet-cards',
+        '--disable-popup-blocking',
+        '--disable-print-preview',
+        '--disable-prompt-on-repost',
+        '--disable-renderer-backgrounding',
+        '--disable-setuid-sandbox',
+        '--disable-speech-api',
+        '--disable-sync',
+        '--hide-scrollbars',
+        '--ignore-gpu-blacklist',
+        '--metrics-recording-only',
+        '--mute-audio',
+        '--no-default-browser-check',
+        '--no-first-run',
+        '--no-pings',
+        '--no-zygote',
+        '--password-store=basic',
+        '--use-gl=swiftshader',
+        '--use-mock-keychain'
       ]
     });
     page = await browser.newPage();
