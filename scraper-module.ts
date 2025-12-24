@@ -189,7 +189,90 @@ export async function scrapeGoogleMapsList(
     await page.waitForTimeout(200);
     await closeAnyDialog();
 
-    const totalItems = maxItems;
+    // Count actual items in the list
+    onProgress({ current: 0, total: maxItems, message: '🔍 Detecting number of items in list...' });
+    async function countAllItems(): Promise<number> {
+      if (!page) return 0;
+      try {
+        // Scroll to bottom to load all items
+        let previousCount = 0;
+        let stableCount = 0;
+        let scrollAttempts = 0;
+        const maxScrollAttempts = 20; // Prevent infinite scrolling
+        
+        while (scrollAttempts < maxScrollAttempts) {
+          const count = await page.evaluate(() => {
+            const sidebar = document.querySelector('[role="main"]');
+            if (!sidebar) return 0;
+            const candidates = sidebar.querySelectorAll('a, [role="button"], [jsaction]');
+            const placeItems = Array.from(candidates).filter((el: Element) => {
+              const rect = el.getBoundingClientRect();
+              if (rect.width === 0 || rect.height === 0) return false;
+              const text = el.textContent || '';
+              if (text.trim().length < 10) return false;
+              if (text.match(/^(Overview|Reviews|Photos|About)$/)) return false;
+              if (text.match(/^(Share|Save|Directions|Nearby)$/)) return false;
+              const parent = el.closest('[role="main"]');
+              if (!parent) return false;
+              if (text.match(/\d\.\d.*\([\d,]+\)/)) return true;
+              if (text.match(/\d\.\d.*\(/)) return true;
+              if (text.match(/[A-Z][a-z]+/) && text.includes('★')) return true;
+              const hasCapitalizedWords = text.match(/[A-Z][a-z]+/);
+              const wordCount = text.trim().split(/\s+/).length;
+              const hasSubstantialContent = text.trim().length >= 15;
+              if (hasCapitalizedWords && (wordCount >= 2 || hasSubstantialContent)) {
+                const isNotJustNumbers = !text.match(/^\d+[\s\d,.-]*$/);
+                const isNotJustDate = !text.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}/);
+                if (isNotJustNumbers && isNotJustDate) return true;
+              }
+              return false;
+            });
+            return placeItems.length;
+          });
+
+          if (count === previousCount) {
+            stableCount++;
+            if (stableCount >= 2) break; // Count stayed same for 2 scrolls, we're done
+          } else {
+            stableCount = 0;
+          }
+
+          previousCount = count;
+          scrollAttempts++;
+
+          // Scroll down
+          await page.evaluate(() => {
+            const sidebar = document.querySelector('[role="main"]');
+            if (!sidebar) return;
+            const scrollElement = sidebar.querySelector('[role="feed"]') || sidebar;
+            scrollElement.scrollTop = scrollElement.scrollHeight;
+          });
+          await page.waitForTimeout(500);
+        }
+
+        return previousCount;
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    const actualItemCount = await countAllItems();
+    // Use actual count for progress display, but cap scraping at maxItems
+    const totalItems = actualItemCount > 0 ? Math.min(actualItemCount, maxItems) : maxItems;
+    
+    if (actualItemCount > 0) {
+      onProgress({ 
+        current: 0, 
+        total: totalItems, // Show actual count (capped at maxItems) for progress
+        message: `📋 Found ${actualItemCount} items in list. Scraping ${totalItems} items...` 
+      });
+    } else {
+      onProgress({ 
+        current: 0, 
+        total: maxItems, 
+        message: `⚠️ Could not detect item count. Will attempt to scrape up to ${maxItems} items...` 
+      });
+    }
     let consecutiveFailures = 0;
     let duplicateCount = 0;
     const MAX_CONSECUTIVE_FAILURES = 3;
