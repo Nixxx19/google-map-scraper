@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+*.md
+.env
+.env.local
+dist
+*.log
+error_screenshot_*.png
+fatal_error.png
+initial_list_view.png
+google_maps_places_*.json
+

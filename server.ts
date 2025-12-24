@@ -95,6 +95,11 @@ app.get('/api/download/:sessionId', (req, res) => {
   res.json(session.results);
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Serve index.html for all other routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

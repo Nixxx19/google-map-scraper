@@ -23,6 +23,9 @@ This will install:
 - `typescript` - TypeScript compiler
 - `ts-node` - Run TypeScript directly
 - `@types/node` - Node.js type definitions
+- **Playwright Chromium browser** (automatically via postinstall script)
+
+**Note:** On first install, Playwright browsers are automatically downloaded. This may take a few minutes.
 
 ## Usage
 
@@ -254,5 +257,16 @@ ts-node scrapper.ts "https://maps.app.goo.gl/abc123" 100
 ## Dependencies
 
 - **Playwright**: Headless browser automation
-- **Node.js**: v14 or higher recommended
+- **Node.js**: v20 or higher recommended (see `.nvmrc`)
+
+## Deployment
+
+For deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+**Quick Deploy Options:**
+- **Docker**: `docker build -t scraper . && docker run -p 3000:3000 scraper`
+- **Railway/Render**: Connect GitHub repo, auto-detects Dockerfile
+- **VPS**: See DEPLOYMENT.md for manual setup
+
+**Important:** Playwright browsers must be installed in the deployment environment. The `postinstall` script handles this automatically, or use `npx playwright install chromium`.
 
