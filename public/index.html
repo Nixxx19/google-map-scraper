@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps List Scraper</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗺️ Google Maps List Scraper</h1>
+            <p class="subtitle">Extract place information from your Google Maps saved lists</p>
+        </header>
+
+        <main>
+            <div class="card">
+                <form id="scrapeForm">
+                    <div class="form-group">
+                        <label for="listUrl">Google Maps List URL</label>
+                        <input 
+                            type="url" 
+                            id="listUrl" 
+                            name="listUrl" 
+                            placeholder="https://maps.app.goo.gl/..." 
+                            required
+                        >
+                        <small>Paste your Google Maps saved list URL here</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="maxItems">Max Items (optional)</label>
+                        <input 
+                            type="number" 
+                            id="maxItems" 
+                            name="maxItems" 
+                            value="200" 
+                            min="1" 
+                            max="1000"
+                        >
+                        <small>Maximum number of places to scrape (default: 200)</small>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn btn-primary">
+                        <span class="btn-text">Start Scraping</span>
+                        <span class="btn-loader" style="display: none;">⏳</span>
+                    </button>
+                </form>
+            </div>
+
+            <div id="progressCard" class="card hidden">
+                <h2>Progress</h2>
+                <div class="progress-bar-container">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progressText">0 / 0</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                </div>
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+
+            <div id="resultsCard" class="card hidden">
+                <div class="results-header">
+                    <h2>Results</h2>
+                    <button id="downloadBtn" class="btn btn-secondary">Download JSON</button>
+                </div>
+                <div id="resultsList" class="results-list"></div>
+            </div>
+
+            <div id="errorCard" class="card error hidden">
+                <h2>❌ Error</h2>
+                <p id="errorMessage"></p>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

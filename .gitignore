@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# TypeScript build output
+dist/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Scraper outputs
+google_maps_places_*.json
+initial_list_view.png
+error_screenshot_*.png
+fatal_error.png
+
+# Logs
+*.log
+npm-debug.log*
+
